@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+httpx
+python-dotenv
+pydantic
+scikit-learn
+pandas
+numpy
+vaderSentiment
