@@ -1,12 +1,5 @@
 """
 CineChat — AI & ML Modulu
-Data Science Final Layihəsi
-
-Bu modulda:
-1. LLM əsaslı chat (OpenRouter API)
-2. TF-IDF əsaslı film recommender (scikit-learn)
-3. Sentiment analizi (VADER)
-4. Əsas məlumat işləmə (pandas, numpy)
 """
 
 import httpx
@@ -20,11 +13,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # ── Konfiqurasiya ──
-OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", "")
-API_URL        = "https://openrouter.ai/api/v1/chat/completions"
-MODEL          = "openrouter/free"
+OPENAI_KEY = os.getenv("OPENAI_API_KEY", "")
+API_URL    = "https://api.openai.com/v1/chat/completions"
+MODEL      = "gpt-4o-mini"
 
-# ── Film verilənlər bazası (TF-IDF recommender üçün) ──
+# ── Film verilənlər bazası ──
 MOVIES_DB = pd.DataFrame([
     {"title": "The Shawshank Redemption", "tags": "drama hope prison friendship redemption 1994"},
     {"title": "The Godfather",            "tags": "crime family mafia power drama 1972"},
@@ -68,50 +61,27 @@ MOVIES_DB = pd.DataFrame([
     {"title": "Poor Things",              "tags": "drama fantasy scifi feminism 2023"},
 ])
 
-# ── TF-IDF modeli ──
 _tfidf  = TfidfVectorizer(stop_words="english")
 _matrix = _tfidf.fit_transform(MOVIES_DB["tags"])
-
-# ── Sentiment analizi ──
 _sentiment = SentimentIntensityAnalyzer()
 
 
-# ═══════════════════════════════════════
-#  TF-IDF ƏSASLI RECOMMENDER
-# ═══════════════════════════════════════
 def recommend_by_tfidf(movie_title: str, n: int = 5) -> list:
-    """
-    TF-IDF + Cosine Similarity əsaslı film recommender.
-    Data Science kursunun əsas texnikası.
-    """
     title_lower = movie_title.lower()
     idx = None
-
-    # Filmi bazada axtar
     for i, row in MOVIES_DB.iterrows():
         if row["title"].lower() == title_lower:
             idx = i
             break
-
     if idx is not None:
-        # Cosine similarity hesabla
         sim_scores = cosine_similarity(_matrix[idx], _matrix).flatten()
-        sim_scores[idx] = 0  # özünü çıxart
+        sim_scores[idx] = 0
         top_indices = np.argsort(sim_scores)[::-1][:n]
         return MOVIES_DB.iloc[top_indices]["title"].tolist()
-
-    # Film bazada yoxdursa — LLM ilə tövsiyyə edəcəyik
     return []
 
 
-# ═══════════════════════════════════════
-#  SENTIMENT ANALİZİ
-# ═══════════════════════════════════════
 def analyze_sentiment(text: str) -> dict:
-    """
-    İstifadəçi mesajının sentiment analizini aparır.
-    VADER (Valence Aware Dictionary and sEntiment Reasoner) istifadə edir.
-    """
     scores = _sentiment.polarity_scores(text)
     if scores["compound"] >= 0.05:
         label = "positive"
@@ -122,13 +92,7 @@ def analyze_sentiment(text: str) -> dict:
     return {"label": label, "scores": scores}
 
 
-# ═══════════════════════════════════════
-#  LLM ƏSASLI TÖVSIYYƏ (fallback)
-# ═══════════════════════════════════════
 async def recommend_by_llm(movie: str, lang: str) -> list:
-    """
-    TF-IDF-də film tapılmadıqda LLM-dən tövsiyyə alır.
-    """
     if lang == "az":
         prompt = f'"{movie}" filminə oxşar 5 film adı ver. Yalnız JSON array: ["Film1","Film2","Film3","Film4","Film5"]'
     else:
@@ -137,7 +101,7 @@ async def recommend_by_llm(movie: str, lang: str) -> list:
     async with httpx.AsyncClient(timeout=20) as client:
         res = await client.post(
             API_URL,
-            headers={"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"},
+            headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
             json={"model": MODEL, "max_tokens": 120,
                   "messages": [{"role": "user", "content": prompt}]},
         )
@@ -149,78 +113,70 @@ async def recommend_by_llm(movie: str, lang: str) -> list:
                 return json.loads(match.group())
             except Exception:
                 pass
-        # Vergüllə ayrılmış siyahı kimi parse et
         return [s.strip().strip('"') for s in text.split(",") if s.strip()][:5]
 
 
-# ═══════════════════════════════════════
-#  ANA RECOMMENDER
-# ═══════════════════════════════════════
 async def get_recommendations(movie: str, lang: str) -> list:
-    """
-    1. TF-IDF ilə cəhd et
-    2. Tapılmadıqda LLM-ə düş
-    """
     films = recommend_by_tfidf(movie, n=5)
     if not films:
         films = await recommend_by_llm(movie, lang)
     return films
 
 
-# ═══════════════════════════════════════
-#  LLM CHAT
-# ═══════════════════════════════════════
 SYSTEM_PROMPTS = {
-    "az_before": """Sən CineChat adlı film müzakirə köməkçisisən.
+    "az_before": """Sen CineChat adli film muzakire komekcisin.
 Qaydalar:
-- Spoiler vermə — filmin sonunu, twist-ləri, ölümləri açıqlama
-- Yalnız janr, aktyorlar, ümumi ab-hava barədə danış
-- Azərbaycan dilində düzgün, səlis yazırsan
-- Qısa və faydalı cavablar ver
-- Cavabda heç vaxt ** işarəsi işlətmə""",
+- Spoiler verme - filmin sonunu, twist-leri, oldumleri aciklama
+- Yalniz janr, aktyorlar, umumi ab-hava barede danis
+- Azerbaycan dilinde duzgun, selis yazirsn
+- Qisa ve faydali cavablar ver
+- Cavabda hec vaxt ** isaresi isletme""",
 
-    "az_after": """Sən CineChat adlı film müzakirə köməkçisisən.
+    "az_after": """Sen CineChat adli film muzakire komekcisin.
 Qaydalar:
-- Spoilerləri sərbəst işlədə bilərsən
-- Personaj psixologiyası, simvolizm, rejissorun mesajı barədə dərin analiz et
-- Azərbaycan dilində düzgün, səlis yazırsan
-- Cavabda heç vaxt ** işarəsi işlətmə""",
+- Spoirleri serbest ishlede bilersin
+- Personaj psixologiyasi, simvolizm, rejissorun mesaji barede derin analiz et
+- Azerbaycan dilinde duzgun, selis yazirsn
+- Cavabda hec vaxt ** isaresi isletme""",
 
     "en_before": """You are CineChat, a friendly movie assistant.
 Rules:
-- No spoilers at all — do not reveal endings, twists, deaths
+- No spoilers at all - do not reveal endings, twists, deaths
 - Only talk about genre, cast, general mood
-- Use simple English: short sentences, common words (B1 level)
+- Use simple English
 - Never use ** in your response""",
 
     "en_after": """You are CineChat, a friendly movie assistant.
 Rules:
-- Spoilers are fine — the user watched the film
+- Spoilers are fine - the user watched the film
 - Give deep analysis: themes, characters, symbols, director choices
-- Use simple English: short sentences, common words (B1 level)
+- Use simple English
 - Never use ** in your response""",
 }
+
 
 async def get_chat_response(message: str, history: list,
                              mode: str, lang: str, movie: str) -> str:
     key    = f"{lang}_{mode}"
     system = SYSTEM_PROMPTS.get(key, SYSTEM_PROMPTS["en_before"])
 
-    # Sentiment analizi aparırıq (Data Science elementi)
+    if movie:
+        system += f'\nThe user is asking about the movie "{movie}". Focus on this movie.'
+
     sentiment = analyze_sentiment(message)
     if sentiment["label"] == "negative" and lang == "az":
-        system += "\nİstifadəçi mənfi əhval-ruhiyyədə görünür, daha həssas cavab ver."
+        system += "\nIstifadeci menfi ehal-ruhiyyede gorunur, daha hassas cavab ver."
     elif sentiment["label"] == "negative":
         system += "\nThe user seems upset. Be extra supportive and kind."
 
     messages = [{"role": "system", "content": system}]
-    messages += history[-12:]  # Son 12 mesaj (context window idarəsi)
+    messages += history[-12:]
     messages.append({"role": "user", "content": message})
 
     async with httpx.AsyncClient(timeout=30) as client:
         res = await client.post(
             API_URL,
-            headers={"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"},
+            headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
             json={"model": MODEL, "max_tokens": 1000, "messages": messages},
         )
         data = res.json()
