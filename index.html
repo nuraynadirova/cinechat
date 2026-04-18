@@ -2,7 +2,7 @@
 <html lang="az" data-theme="ocean-dark">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>CineChat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -157,15 +157,71 @@ button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .chat-input::placeholder{color:var(--text3)}.chat-input:focus{border-color:var(--accent)}
 .send-btn{width:42px;height:42px;border-radius:10px;background:var(--accent);border:none;color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s}
 .send-btn:hover{background:var(--accent-dark)}.send-btn:active{transform:scale(.93)}
-@media(max-width:680px){
-  .hamburger{display:flex}
-  .sidebar{position:fixed;top:0;left:0;height:100%;z-index:50;transform:translateX(-100%);box-shadow:4px 0 32px var(--shadow);width:280px;}
-  .sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block}
-  .chat-header{padding:11px 14px}.messages{padding:14px}
-  .input-bar,.quick-row,.suggestions-bar{padding-left:14px;padding-right:14px}
-  .bubble{max-width:86%}.mode-btn span{display:none}.mode-btn{padding:7px 10px}
+/* ── Tablet ── */
+@media(max-width:900px){
+  .sidebar{width:240px;min-width:240px;}
 }
-@media(max-width:380px){.hero-logo{font-size:36px}.header-center{gap:4px}}
+
+/* ── Mobil ── */
+@media(max-width:680px){
+  /* Sidebar overlay kimi acilir */
+  .hamburger{display:flex}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;height:-webkit-fill-available;z-index:50;transform:translateX(-100%);box-shadow:4px 0 32px var(--shadow);width:85vw;max-width:320px;min-width:260px;}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:block}
+
+  /* App tam ekran */
+  .app{height:100vh;height:-webkit-fill-available;}
+  html,body{height:100vh;height:-webkit-fill-available;}
+
+  /* Header */
+  .chat-header{padding:10px 12px;gap:6px;}
+  .chat-title{font-size:13px;}
+  .mode-btn span{display:none}
+  .mode-btn{padding:6px 8px;font-size:11px;}
+  .clear-btn{width:30px;height:30px;font-size:13px;}
+
+  /* Mesajlar */
+  .messages{padding:10px 12px;gap:8px;}
+  .bubble{max-width:88%;font-size:13px;padding:9px 12px;}
+  .avatar{width:28px;height:28px;font-size:12px;}
+
+  /* Quick buttons */
+  .quick-row{padding:4px 12px 6px;gap:4px;}
+  .quick-btn{font-size:10px;padding:4px 10px;}
+
+  /* Suggestions */
+  .suggestions-bar{padding:0 12px 4px;}
+  .sug-chip{font-size:11px;padding:3px 10px;}
+
+  /* Input bar */
+  .input-bar{padding:8px 12px 12px;gap:6px;}
+  .chat-input{font-size:14px;padding:10px 12px;}
+  .send-btn{width:40px;height:40px;}
+  .mic-btn{width:40px;height:40px;font-size:15px;}
+
+  /* Movie card */
+  .movie-card{max-width:160px;}
+}
+
+/* ── Kicik telefonlar (iPhone SE, Galaxy A) ── */
+@media(max-width:390px){
+  .hero-logo{font-size:34px;}
+  .hero h1{font-size:15px;}
+  .hero p{font-size:13px;}
+  .hero-features span{font-size:11px;padding:4px 10px;}
+  .header-center{gap:3px;}
+  .mode-btn{padding:5px 7px;}
+  .bubble{font-size:12.5px;}
+  .quick-btn{font-size:10px;padding:4px 8px;}
+}
+
+/* ── Cox kicik telefonlar (320px) ── */
+@media(max-width:340px){
+  .hero-logo{font-size:28px;}
+  .chat-input{font-size:13px;}
+  .bubble{max-width:92%;}
+}
 </style>
 </head>
 <body>
