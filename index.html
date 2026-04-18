@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="az" data-theme="ocean-dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CineChat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[data-theme="ocean-dark"]{--bg-base:#03080f;--bg-panel:#070f1a;--bg-card:#0b1829;--bg-hover:#112238;--bg-input:#0b1829;--accent:#3b82f6;--accent-dark:#2563eb;--accent-dim:rgba(59,130,246,0.15);--accent-glow:rgba(59,130,246,0.30);--text:#e2eaf6;--text2:#7fa8d4;--text3:#3a5878;--border:rgba(59,130,246,0.10);--border2:rgba(59,130,246,0.25);--shadow:rgba(0,0,0,0.70);--bubble-bot:#0b1829;--bubble-user:#1a3a6e;--scrollbar:#112238;}
+[data-theme="ocean-light"]{--bg-base:#b0ccdf;--bg-panel:#c0d8ec;--bg-card:#aac4d8;--bg-hover:#90b0c8;--bg-input:#aac4d8;--accent:#0a4f8a;--accent-dark:#073d6e;--accent-dim:rgba(10,79,138,0.18);--accent-glow:rgba(10,79,138,0.30);--text:#020e1a;--text2:#0a3a5c;--text3:#2d6a96;--border:rgba(10,79,138,0.20);--border2:rgba(10,79,138,0.40);--shadow:rgba(0,20,50,0.18);--bubble-bot:#aac4d8;--bubble-user:#0a4f8a;--scrollbar:#6090b0;}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;background:var(--bg-base);color:var(--text);transition:background .3s,color .3s}
+.hero{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 24px;overflow:hidden;transition:opacity .38s ease,transform .38s ease;}
+[data-theme="ocean-dark"] .hero{background:radial-gradient(ellipse at 50% 60%,#051a3a 0%,#020c1a 55%,#010508 100%)}
+[data-theme="ocean-light"] .hero{background:radial-gradient(ellipse at 50% 60%,#5080a0 0%,#7098b8 55%,#90b4cc 100%)}
+.hero-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.06) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 75%);}
+[data-theme="ocean-light"] .hero-bg-grid{background-image:linear-gradient(rgba(26,111,196,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(26,111,196,0.07) 1px,transparent 1px);}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orb-float 8s ease-in-out infinite}
+.hero-orb-1{width:340px;height:340px;top:-80px;right:-60px;background:rgba(59,130,246,0.12)}
+.hero-orb-2{width:260px;height:260px;bottom:-60px;left:-40px;background:rgba(59,130,246,0.08);animation-delay:-4s}
+[data-theme="ocean-light"] .hero-orb-1{background:rgba(10,79,138,0.20)}
+[data-theme="ocean-light"] .hero-orb-2{background:rgba(10,79,138,0.15)}
+@keyframes orb-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-24px) scale(1.05)}}
+.hero-content{position:relative;z-index:1;max-width:580px;animation:hero-in .7s cubic-bezier(.16,1,.3,1) both}
+@keyframes hero-in{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.hero-badge{display:inline-block;padding:5px 14px;border:1px solid var(--border2);border-radius:20px;font-size:11px;font-weight:600;font-family:'Syne',sans-serif;letter-spacing:.8px;color:var(--accent);background:var(--accent-dim);margin-bottom:22px;text-transform:uppercase;}
+.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(42px,9vw,80px);font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:18px;}
+[data-theme="ocean-dark"] .hero-logo{background:linear-gradient(135deg,#e2eaf6 30%,#3b82f6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+[data-theme="ocean-light"] .hero-logo{background:linear-gradient(135deg,#010a14 30%,#0a4f8a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(17px,3vw,22px);font-weight:600;color:var(--text2);margin-bottom:12px;letter-spacing:-.3px}
+.hero p{font-size:15px;color:var(--text3);margin-bottom:28px;line-height:1.6}
+.hero-features{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:32px}
+.hero-features span{padding:6px 14px;border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);background:var(--bg-card)}
+.hero-cta{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s;box-shadow:0 4px 24px var(--accent-glow);letter-spacing:.3px;}
+.hero-cta:hover{background:var(--accent-dark);transform:translateY(-2px);box-shadow:0 8px 32px var(--accent-glow)}
+.hero-cta:active{transform:translateY(0)}
+.hero-exit{opacity:0!important;transform:scale(.97)!important;pointer-events:none}
+.app{display:none;height:100vh;width:100vw;opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .35s ease}
+.app.app-visible{opacity:1;transform:translateY(0)}
+.sidebar-overlay{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);opacity:0;transition:opacity .25s ease;}
+.sidebar-overlay.active{opacity:1}
+/* ══ ICON RAIL SIDEBAR ══ */
+.sidebar{width:280px;min-width:280px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:row;transition:background .3s,border-color .3s,transform .28s cubic-bezier(.4,0,.2,1);z-index:50;}
+
+/* Icon rail - sol dar sutun */
+.sb-rail{width:54px;min-width:54px;background:var(--bg-base);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px;flex-shrink:0;}
+.sb-rail-logo{font-size:22px;margin-bottom:10px;color:var(--accent);}
+.rail-btn{width:40px;height:40px;border-radius:10px;border:none;background:none;color:var(--text3);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;}
+.rail-btn:hover{background:var(--bg-hover);color:var(--text2);}
+.rail-btn.active{background:var(--accent-dim);color:var(--accent);}
+.rail-spacer{flex:1;}
+.rail-theme{font-size:18px;width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-bottom:4px;}
+.rail-theme:hover{border-color:var(--accent);color:var(--accent);}
+.rail-lang{font-size:12px;font-weight:700;width:40px;height:28px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;letter-spacing:.5px;}
+
+/* Panel - sag hisse */
+.sb-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* Panel sections */
+.sb-panel-section{padding:10px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sb-panel-section.sb-grow{flex:1;border-bottom:none;overflow-y:auto;padding:10px 12px;}
+.sb-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Syne',sans-serif;}
+
+/* Sidebar logo area */
+.sidebar-logo{display:none;}
+.logo-icon{font-size:20px}.logo-text{display:none;}
+.sidebar-close{display:none;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px;border-radius:6px;transition:color .1s,background .1s;}
+.sidebar-close:hover{color:var(--text);background:var(--bg-hover)}
+
+/* Old sb-section still works for mobile */
+.sb-section{padding:10px 12px 8px;border-bottom:1px solid var(--border);}
+.sb-section.sb-grow{flex:1;border-bottom:none;overflow-y:auto;}
+.theme-row{display:flex;flex-direction:column;gap:5px}
+.theme-pill{padding:8px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;transition:all .15s}
+.theme-pill:hover{border-color:var(--accent);color:var(--text)}.theme-pill.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:600}
+.lang-row{display:flex;gap:7px}
+.lang-pill{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;text-align:center}
+.lang-pill:hover{border-color:var(--accent);color:var(--text)}.lang-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.search-row{display:flex;gap:6px;margin-bottom:8px}
+.sb-input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s,background .3s;width:100%}
+.sb-input::placeholder{color:var(--text3)}.sb-input:focus{border-color:var(--accent)}
+.search-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--accent);font-size:14px;cursor:pointer;flex-shrink:0;transition:all .15s}
+.search-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.search-result{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:3px}
+.search-result:hover{background:var(--bg-hover)}.result-title{font-size:12px;font-weight:600;color:var(--text);line-height:1.3}.result-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.wl-item{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:7px;background:var(--bg-card);border:1px solid var(--border);font-size:13px;color:var(--text2);margin-bottom:4px;cursor:pointer;transition:background .12s;width:100%;}
+.wl-item:hover{background:var(--bg-hover);border-color:var(--accent);}
+.wl-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.wl-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 0 0 6px;line-height:1;transition:color .1s;flex-shrink:0;}
+.wl-del:hover{color:#e55;}
+.wl-container{display:flex;flex-direction:column;padding:2px 0;}
+.sb-empty{font-size:13px;color:var(--text3);padding:2px 0;}
+.recent-item{display:flex;align-items:center;justify-content:space-between;padding:7px 8px;border-radius:7px;background:var(--bg-card);border:1px solid var(--border);font-size:13px;color:var(--text2);margin-bottom:4px;cursor:pointer;transition:background .12s;gap:6px}
+.recent-item:hover{background:var(--bg-hover);border-color:var(--accent)}
+.recent-item.active-chat{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.recent-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-weight:500}
+.recent-date{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+.recent-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 0 0 4px;line-height:1;transition:color .1s;flex-shrink:0}
+.recent-del:hover{color:#e55}
+.new-chat-btn{width:100%;padding:7px;background:var(--accent-dim);border:1px solid var(--border2);border-radius:8px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;margin-bottom:8px;text-align:center}
+.new-chat-btn:hover{background:var(--accent);color:#fff}
+.notify-btn{width:100%;margin-top:7px;padding:8px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+.notify-btn:hover{background:var(--accent-dark)}
+.chat-panel{flex:1;display:flex;flex-direction:column;background:var(--bg-base);overflow:hidden;min-width:0;transition:background .3s}
+.chat-header{display:flex;align-items:center;gap:10px;padding:13px 20px;background:var(--bg-panel);border-bottom:1px solid var(--border);flex-shrink:0;transition:background .3s}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:4px;width:36px;height:36px;background:none;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:8px 7px;flex-shrink:0;transition:border-color .15s,background .15s}
+.hamburger:hover{border-color:var(--accent);background:var(--accent-dim)}
+.hamburger span{display:block;height:1.5px;background:var(--text2);border-radius:2px;transition:background .15s}
+.hamburger:hover span{background:var(--accent)}
+.chat-header-info{flex-shrink:0}.chat-title{font-size:14px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif}.chat-sub{font-size:11px;color:var(--accent);margin-top:1px;font-weight:500}
+.header-center{display:flex;gap:5px;margin-left:auto}
+.mode-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text2);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:4px}
+.mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}.mode-btn:hover:not(.active){border-color:var(--accent);color:var(--text)}
+.clear-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);font-size:14px;cursor:pointer;flex-shrink:0;transition:all .15s}
+.clear-btn:hover{border-color:#e55;background:rgba(238,85,85,0.08)}
+.messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:18px 20px;scrollbar-width:thin;scrollbar-color:var(--scrollbar) transparent}
+.messages::-webkit-scrollbar{width:4px}.messages::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:2px}
+.msg{display:flex;gap:9px;align-items:flex-start;animation:msg-in .2s ease both}.msg.user{flex-direction:row-reverse}
+@keyframes msg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-weight:700;font-family:'Syne',sans-serif}
+.avatar.bot{background:var(--accent);color:#fff}.avatar.user{background:var(--bg-hover);color:var(--text2);font-size:11px}
+.bubble{max-width:74%;padding:10px 14px;font-size:13.5px;line-height:1.75;border:1px solid var(--border);transition:background .3s}
+.bubble.bot{background:var(--bubble-bot);color:var(--text);border-radius:4px 13px 13px 13px}
+.bubble.user{background:var(--bubble-user);color:#fff;border-radius:13px 4px 13px 13px;border-color:transparent}
+.bubble b{font-weight:700;color:var(--accent)}[data-theme="ocean-light"] .bubble.user b{color:#a0c8e8}
+.movie-card{background:var(--bg-card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-top:10px;max-width:200px}
+.movie-card img{width:100%;display:block}.movie-card-body{padding:9px 11px}
+.mc-title{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;font-family:'Syne',sans-serif}.mc-meta{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.5}
+.bubble-actions{display:flex;align-items:center;gap:5px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.act-btn{background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;width:28px;height:28px;border-radius:6px;cursor:pointer;transition:all .12s}
+.act-btn:hover{border-color:var(--accent);color:var(--accent)}.act-btn.liked{background:var(--accent);border-color:var(--accent);color:#fff}.act-btn.disliked{background:var(--bg-hover)}
+.stars{display:flex;gap:1px;margin-left:auto}
+.star{font-size:15px;cursor:pointer;color:var(--text3);transition:color .1s,transform .1s;background:none;border:none;padding:0;line-height:1}
+.star:hover{transform:scale(1.15)}.star.lit{color:#f5c518}
+.spoiler-badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:600;background:var(--accent-dim);color:var(--accent);border:1px solid var(--border2);margin-bottom:6px;font-family:'Syne',sans-serif;letter-spacing:.3px}
+.typing{display:flex;align-items:center;gap:5px;padding:10px 14px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.18s}.dot:nth-child(3){animation-delay:.36s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.suggestions-bar{padding:0 20px 5px;flex-shrink:0}
+.sug-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;font-family:'Syne',sans-serif}
+.sug-chips{display:flex;gap:5px;flex-wrap:wrap}
+.sug-chip{padding:4px 12px;border:1px solid var(--accent);border-radius:14px;background:transparent;color:var(--accent);font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s}
+.sug-chip:hover{background:var(--accent);color:#fff}
+.quick-row{display:flex;flex-wrap:wrap;gap:4px;padding:0 20px 7px;flex-shrink:0}
+.quick-btn{padding:5px 12px;border:1px solid var(--border);border-radius:14px;background:var(--bg-card);color:var(--text2);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s}
+.quick-btn:hover{border-color:var(--accent);color:var(--text);background:var(--bg-hover)}
+.input-bar{display:flex;gap:7px;padding:10px 20px 14px;background:var(--bg-panel);border-top:1px solid var(--border);flex-shrink:0;transition:background .3s}
+.mic-btn{width:42px;height:42px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mic-btn:hover{border-color:var(--accent);background:var(--accent-dim)}.mic-btn.active{background:var(--accent);border-color:var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}50%{box-shadow:0 0 0 7px transparent}}
+.chat-input{flex:1;padding:11px 15px;border:1px solid var(--border);border-radius:10px;background:var(--bg-input);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s,background .3s}
+.chat-input::placeholder{color:var(--text3)}.chat-input:focus{border-color:var(--accent)}
+.send-btn{width:42px;height:42px;border-radius:10px;background:var(--accent);border:none;color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s}
+.send-btn:hover{background:var(--accent-dark)}.send-btn:active{transform:scale(.93)}
+@media(max-width:680px){
+  .hamburger{display:flex}
+  .sidebar{position:fixed;top:0;left:0;height:100%;z-index:50;transform:translateX(-100%);box-shadow:4px 0 32px var(--shadow);width:280px;}
+  .sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block}
+  .chat-header{padding:11px 14px}.messages{padding:14px}
+  .input-bar,.quick-row,.suggestions-bar{padding-left:14px;padding-right:14px}
+  .bubble{max-width:86%}.mode-btn span{display:none}.mode-btn{padding:7px 10px}
+}
+@media(max-width:380px){.hero-logo{font-size:36px}.header-center{gap:4px}}
+</style>
+</head>
+<body>
+<div class="hero" id="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ AI-Powered Film Assistant</div>
+    <div class="hero-logo">CineChat</div>
+    <h1 id="hero-title">Filmləri dərindən anla</h1>
+    <p id="hero-sub">AI ilə spoilersiz məlumat al, izlədikdən sonra dərin analiz apar</p>
+    <div class="hero-features">
+      <span>📖 Spoiler-free</span>
+      <span>🎭 Dərin analiz</span>
+      <span>🎬 Tövsiyyə</span>
+    </div>
+    <button class="hero-cta" id="hero-btn" onclick="startApp()">
+      <span>Başla</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+<div class="app" id="app">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <!-- Icon Rail -->
+    <div class="sb-rail">
+      <div class="sb-rail-logo">🎬</div>
+      <button class="rail-btn active" id="rail-chat" onclick="railSwitch('chat')" title="Sohbetler">💬</button>
+      <button class="rail-btn" id="rail-wl" onclick="railSwitch('wl')" title="Watchlist">📋</button>
+      <div class="rail-spacer"></div>
+      <button class="rail-theme" id="rail-theme-btn" onclick="toggleTheme()" title="Tema">🌑</button>
+      <button class="rail-lang" id="rail-lang-btn" onclick="toggleLang()">AZ</button>
+      <button class="sidebar-close" onclick="closeSidebar()" style="display:none;margin-top:4px;" id="sb-close-btn">✕</button>
+    </div>
+    <!-- Panel -->
+    <div class="sb-panel">
+      <!-- Chat + Search birlesik panel -->
+      <div class="sb-panel-section sb-grow" id="panel-chat" style="flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="sb-label" id="lbl-recents">Son Sohbetler</div>
+          <button class="new-chat-btn" id="new-chat-btn" onclick="startNewChat()" style="width:auto;padding:3px 8px;margin:0;font-size:9px;">+ <span id="lbl-new-chat">Yeni</span></button>
+        </div>
+        <div id="recents-list" style="flex:1;overflow-y:auto;"><div class="sb-empty">—</div></div>
+        <!-- Film Axtar her zaman gorunur -->
+        <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px;flex-shrink:0;">
+          <div class="sb-label" id="lbl-search">Film Axtar</div>
+          <div class="search-row">
+            <input class="sb-input" id="search-input" type="text" placeholder="Film adi..." onkeydown="if(event.key==='Enter') doSearch()"/>
+            <button class="search-btn" onclick="doSearch()">→</button>
+          </div>
+          <div id="search-results"></div>
+        </div>
+      </div>
+      <!-- Search panel artiq ayri deyil - yukarda birlesdirdik -->
+      <div id="panel-search" style="display:none;"></div>
+      <!-- Watchlist panel -->
+      <div class="sb-panel-section sb-grow" id="panel-wl" style="display:none;flex-direction:column;">
+        <div class="sb-label" id="lbl-watchlist">Watchlist</div>
+        <div class="wl-container" id="watchlist-items" style="overflow-y:auto;flex:1;"><div class="sb-empty">—</div></div>
+      </div>
+      <!-- Notify always at bottom -->
+      <div class="sb-panel-section" style="flex-shrink:0;">
+        <div class="sb-label" id="lbl-notify">Email</div>
+        <div style="display:flex;gap:5px;">
+          <input class="sb-input" id="notify-email" type="email" placeholder="email@example.com" style="font-size:11px;"/>
+          <button class="notify-btn" id="notify-btn" onclick="subscribeNotify()" style="width:auto;padding:6px 10px;margin:0;white-space:nowrap;">→</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <main class="chat-panel">
+    <header class="chat-header">
+      <button class="hamburger" onclick="openSidebar()"><span></span><span></span><span></span></button>
+      <div class="chat-header-info">
+        <div class="chat-title">CineChat</div>
+        <div class="chat-sub" id="chat-sub">Spoilersiz rejim</div>
+      </div>
+      <div class="header-center">
+        <button class="mode-btn active" id="btn-before" onclick="setMode('before')">📖 <span id="lbl-before">Evvel</span></button>
+        <button class="mode-btn" id="btn-after" onclick="setMode('after')">🎭 <span id="lbl-after">Sonra</span></button>
+      </div>
+      <button class="clear-btn" onclick="doClearChat()" title="Temizle">🗑</button>
+    </header>
+    <div class="messages" id="messages"></div>
+    <div class="suggestions-bar" id="suggestions"></div>
+    <div class="quick-row" id="quick-btns"></div>
+    <div class="input-bar">
+      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Ses">🎤</button>
+      <input class="chat-input" id="chat-input" type="text" placeholder="Film adi ve ya sual..." onkeydown="if(event.key==='Enter') sendMsg()"/>
+      <button class="send-btn" onclick="sendMsg()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 15V3M3 9l6-6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </main>
+</div>
+<script>
+var OMDB_KEY="ed92e493";
+var BACKEND_URL="https://cinechat-production.up.railway.app";
+var EJS_SERVICE="service_soi0wsp";
+var EJS_CONFIRM="template_gus1r8o";
+var EJS_NOTIFY="template_n4rqoem";
+var EJS_KEY="0S1lkRWjH3R-Om1F3";
+var subscribers=[];
+(function(){ if(typeof emailjs!=="undefined") emailjs.init({publicKey:EJS_KEY}); })();
+
+var appMode="before",appMovie="",appHistory=[],appLang="az",appTheme="ocean-dark";
+var watchlist=[],recognition=null,isListening=false;
+var chatSessions=[]; // Butun kecmis sohbetler
+var activeChatId=null; // Hazirki sohbetin ID-si
+var _pendingNewMovie=null; // startWithMovie-den gelen film adi
+var _posterMovie=null; // poster/suggestions ucun gecici film adi
+
+try{var saved=JSON.parse(localStorage.getItem("cc_app")||"{}");if(saved.mode)appMode=saved.mode;if(saved.movie)appMovie=saved.movie;if(saved.history)appHistory=saved.history;if(saved.lang)appLang=saved.lang;if(saved.theme)appTheme=saved.theme;}catch(e){}
+try{watchlist=JSON.parse(localStorage.getItem("cc_watchlist")||"[]");}catch(e){}
+try{subscribers=JSON.parse(localStorage.getItem("cc_subscribers")||"[]");}catch(e){}
+try{chatSessions=JSON.parse(localStorage.getItem("cc_sessions")||"[]");}catch(e){}
+
+document.documentElement.setAttribute("data-theme",appTheme);
+
+function saveApp(){
+  localStorage.setItem("cc_app",JSON.stringify({mode:appMode,movie:appMovie,history:appHistory,lang:appLang,theme:appTheme}));
+}
+function saveSessions(){
+  localStorage.setItem("cc_sessions",JSON.stringify(chatSessions));
+}
+function genId(){
+  return Date.now().toString(36)+Math.random().toString(36).substr(2,5);
+}
+function getSessionTitle(movie,history){
+  if(movie) return movie;
+  if(history&&history.length>0) return history[0].content.substr(0,30)+(history[0].content.length>30?"...":"");
+  return getText("Yeni Sohbet","New Chat");
+}
+function saveCurrentSession(){
+  if(!appHistory.length) return;
+  if(!activeChatId) return; // activeChatId yoxdursa saxlama - sendMsg-de yaradilir
+  var title=getSessionTitle(appMovie,appHistory);
+  var now=new Date();
+  var dateStr=now.getDate()+"."+(now.getMonth()+1)+"."+now.getFullYear();
+  for(var i=0;i<chatSessions.length;i++){
+    if(chatSessions[i].id===activeChatId){
+      chatSessions[i].title=title;
+      chatSessions[i].history=appHistory.slice();
+      chatSessions[i].movie=appMovie;
+      chatSessions[i].mode=appMode;
+      chatSessions[i].lang=appLang;
+      chatSessions[i].date=dateStr;
+      saveSessions();
+      renderRecents();
+      return;
+    }
+  }
+}
+function loadSession(id){
+  for(var i=0;i<chatSessions.length;i++){
+    if(chatSessions[i].id===id){
+      var s=chatSessions[i];
+      // Hazirki sohbeti saxla
+      saveCurrentSession();
+      // Yeni sessiyanı yukle
+      activeChatId=s.id;
+      appHistory=s.history.slice();
+      appMovie=s.movie||"";
+      appMode=s.mode||"before";
+      appLang=s.lang||appLang;
+      saveApp();
+      // UI yenile
+      syncLangBtns(); updateAllUI();
+      var msgs=document.getElementById("messages"),sugs=document.getElementById("suggestions");
+      if(msgs)msgs.innerHTML="";if(sugs)sugs.innerHTML="";
+      for(var j=0;j<appHistory.length;j++){
+        var m=appHistory[j];
+        if(m.role==="user")addBubble("user",m.content,false,false,false);
+        else if(m.role==="assistant")addBubble("bot",m.content,false,true,true);
+      }
+      if(appMovie)fetchSuggestions(appMovie);
+      renderRecents();
+      closeSidebar();
+      return;
+    }
+  }
+}
+function deleteSession(id){
+  chatSessions=chatSessions.filter(function(s){return s.id!==id;});
+  saveSessions();
+  if(activeChatId===id){
+    activeChatId=null;
+    doClearChat(false);
+  }
+  renderRecents();
+}
+function startNewChat(){
+  saveCurrentSession();
+  activeChatId=null;
+  appHistory=[];appMovie="";
+  saveApp();
+  var msgs=document.getElementById("messages"),sugs=document.getElementById("suggestions");
+  if(msgs)msgs.innerHTML="";if(sugs)sugs.innerHTML="";
+  addBubble("bot",getWelcome(),false,false,false);
+  renderRecents();
+  closeSidebar();
+}
+function renderRecents(){
+  var el=document.getElementById("recents-list"); if(!el) return;
+  if(!chatSessions.length){ el.innerHTML='<div class="sb-empty">—</div>'; return; }
+  el.innerHTML="";
+  chatSessions.forEach(function(s){
+    var isActive=s.id===activeChatId;
+    var row=document.createElement("div");
+    row.className="recent-item"+(isActive?" active-chat":"");
+    row.style.cursor="pointer";
+    var titleEl=document.createElement("span"); titleEl.className="recent-title"; titleEl.textContent=s.title||"?"; row.appendChild(titleEl);
+    var dateEl=document.createElement("span"); dateEl.className="recent-date"; dateEl.textContent=s.date||""; row.appendChild(dateEl);
+    var delBtn=document.createElement("button"); delBtn.className="recent-del"; delBtn.innerHTML="&#x2715;";
+    (function(id){ delBtn.onclick=function(e){ e.stopPropagation(); deleteSession(id); }; row.onclick=function(){ loadSession(id); }; })(s.id);
+    row.appendChild(delBtn);
+    el.appendChild(row);
+  });
+}
+function escHtml(t){
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function railSwitch(panel){
+  var panels=['chat','wl'];
+  panels.forEach(function(p){
+    var el=document.getElementById('panel-'+p);
+    var btn=document.getElementById('rail-'+p);
+    if(el){
+      el.style.display = p===panel ? 'flex' : 'none';
+      el.style.flexDirection = 'column';
+    }
+    if(btn) btn.classList.toggle('active', p===panel);
+  });
+}
+function toggleTheme(){
+  var t=appTheme==='ocean-dark'?'ocean-light':'ocean-dark';
+  setTheme(t);
+  var btn=document.getElementById('rail-theme-btn');
+  if(btn) btn.textContent=t==='ocean-dark'?'🌑':'☀️';
+}
+function toggleLang(){
+  var l=appLang==='az'?'en':'az';
+  setLang(l);
+  var btn=document.getElementById('rail-lang-btn');
+  if(btn) btn.textContent=l.toUpperCase();
+}
+function syncRailBtns(){
+  var tb=document.getElementById('rail-theme-btn');
+  if(tb) tb.textContent=appTheme==='ocean-dark'?'🌑':'☀️';
+  var lb=document.getElementById('rail-lang-btn');
+  if(lb) lb.textContent=appLang.toUpperCase();
+}
+function startApp(){
+  var hero=document.getElementById("hero"),app=document.getElementById("app");
+  hero.classList.add("hero-exit");
+  setTimeout(function(){
+    hero.style.display="none";app.style.display="flex";
+    setTimeout(function(){app.classList.add("app-visible");initApp();},20);
+  },380);
+}
+function openSidebar(){document.getElementById("sidebar").classList.add("open");document.getElementById("sidebar-overlay").classList.add("active");document.body.style.overflow="hidden";var cl=document.getElementById("sb-close-btn");if(cl)cl.style.display="flex";}
+function closeSidebar(){document.getElementById("sidebar").classList.remove("open");document.getElementById("sidebar-overlay").classList.remove("active");document.body.style.overflow="";var cl=document.getElementById("sb-close-btn");if(cl)cl.style.display="none";}
+
+function initApp(){
+  document.documentElement.setAttribute("data-theme",appTheme);
+  syncThemeBtns();syncLangBtns();updateAllUI();renderWatchlist();renderRecents();
+  // App acilanda temiz sohbet basla (kohne sohbet sessions-da saxlanilir)
+  activeChatId=null;
+  appHistory=[];appMovie="";
+  saveApp();
+  addBubble("bot",getWelcome(),false,false,false);
+  renderQuickBtns();
+  syncRailBtns();
+  railSwitch("chat");
+}
+function syncThemeBtns(){var d=document.getElementById("tb-dark"),l=document.getElementById("tb-light");if(d)d.classList.toggle("active",appTheme==="ocean-dark");if(l)l.classList.toggle("active",appTheme==="ocean-light");}
+function syncLangBtns(){var a=document.getElementById("lb-az"),e=document.getElementById("lb-en");if(a)a.classList.toggle("active",appLang==="az");if(e)e.classList.toggle("active",appLang==="en");}
+function getWelcome(){return appLang==="az"?"Salam! Film adi yazin — spoilersiz melumat alin ve ya derin analiz aparaq.":"Hello! Type a movie name — get spoiler-free info or deep analysis.";}
+function setTheme(t){appTheme=t;document.documentElement.setAttribute("data-theme",t);syncThemeBtns();saveApp();}
+function setLang(l){appLang=l;syncLangBtns();updateAllUI();saveApp();}
+function getText(az,en){return appLang==="az"?az:en;}
+
+function updateAllUI(){
+  setEl("lbl-recents",getText("Son Sohbetler","Recent Chats"));
+  setEl("lbl-new-chat",getText("Yeni","New"));
+  syncRailBtns();
+  setEl("lbl-search",getText("Film Axtar","Search Movie"));
+  setEl("lbl-watchlist","Watchlist");
+  setEl("lbl-notify",getText("Yeni Film Bildirisi","New Movie Alert"));
+  setEl("notify-btn",getText("Abune ol","Subscribe"));
+  setEl("lbl-before",getText("Evvel","Before"));
+  setEl("lbl-after",getText("Sonra","After"));
+  setEl("chat-sub",appMode==="before"?getText("Spoilersiz rejim","Spoiler-free mode"):getText("Analiz rejimi","Analysis mode"));
+  setAttr("search-input","placeholder",getText("Film adi...","Movie name..."));
+  setAttr("chat-input","placeholder",getText("Film adi ve ya sual...","Movie name or question..."));
+  var b=document.getElementById("btn-before"),a=document.getElementById("btn-after");
+  if(b)b.classList.toggle("active",appMode==="before");if(a)a.classList.toggle("active",appMode==="after");
+  renderQuickBtns();renderWatchlist();
+}
+function setEl(id,val){var e=document.getElementById(id);if(e)e.textContent=val;}
+function setAttr(id,attr,val){var e=document.getElementById(id);if(e)e.setAttribute(attr,val);}
+
+function setMode(m){
+  appMode=m;
+  setEl("chat-sub",m==="before"?getText("Spoilersiz rejim","Spoiler-free mode"):getText("Analiz rejimi","Analysis mode"));
+  var b=document.getElementById("btn-before"),a=document.getElementById("btn-after");
+  if(b)b.classList.toggle("active",m==="before");if(a)a.classList.toggle("active",m==="after");
+  renderQuickBtns();saveApp();
+  if(appMovie)addBubble("bot",m==="before"?getText("Spoilersiz rejime kecildi.","Switched to spoiler-free mode."):getText("Analiz rejimine kecildi!","Switched to analysis mode!"),false,false,false);
+}
+
+function getQuickBtns(){
+  return appMode==="before"
+    ?(appLang==="az"?["Umumi melumat","Janri nedir?","Aktyor heyeti","Izlemeyə deyermi?","Watchlist-e elave et","Sohbeti temizle"]:["General info","What genre?","Cast & crew","Worth watching?","Add to Watchlist","Clear chat"])
+    :(appLang==="az"?["Esas mesaj","Personaj tehlili","Simvolik sehneler","Rejissorun niyyeti","Watchlist-e elave et","Sohbeti temizle"]:["Main message","Character analysis","Symbolic scenes","Director's intent","Add to Watchlist","Clear chat"]);
+}
+function renderQuickBtns(){
+  var el=document.getElementById("quick-btns");if(!el)return;
+  var btns=getQuickBtns(),html="";
+  for(var i=0;i<btns.length;i++)html+='<button class="quick-btn" onclick="handleQuick(\''+btns[i].replace(/'/g,"\\'")+'\')">' + btns[i] + '</button>';
+  el.innerHTML=html;
+}
+function handleQuick(text){
+  var wl=getText("Watchlist-e elave et","Add to Watchlist"),cl=getText("Sohbeti temizle","Clear chat");
+  if(text===wl){addToWatchlist();return;}
+  if(text===cl){doClearChat();return;}
+  var ci=document.getElementById("chat-input");
+  // Film adi varsa, quick button mesajina elave et ki model anlaysin
+  var msg=text;
+  if(appMovie) msg=text+' ("'+appMovie+'" filmi haqqinda)';
+  if(ci)ci.value=msg;
+  sendMsg();
+}
+
+function addToWatchlist(){
+  if(!appMovie||watchlist.indexOf(appMovie)!==-1)return;
+  watchlist.push(appMovie);localStorage.setItem("cc_watchlist",JSON.stringify(watchlist));renderWatchlist();
+  addBubble("bot",getText('"'+appMovie+'" watchlist-e elave edildi!','"'+appMovie+'" added to watchlist!'),false,false,false);
+}
+function removeFromWatchlist(movie){
+  watchlist=watchlist.filter(function(m){return m!==movie;});
+  localStorage.setItem("cc_watchlist",JSON.stringify(watchlist));renderWatchlist();
+}
+function renderWatchlist(){
+  var el=document.getElementById("watchlist-items");if(!el)return;
+  if(!watchlist.length){el.innerHTML='<div class="sb-empty">—</div>';return;}
+  el.innerHTML="";
+  watchlist.forEach(function(mv){
+    var chip=document.createElement("div");chip.className="wl-item";
+    var nm=document.createElement("span");nm.className="wl-name";nm.textContent=mv;
+    var del=document.createElement("button");del.className="wl-del";del.innerHTML="&#x2715;";
+    (function(m){
+      chip.onclick=function(){startWithMovie(m);};
+      del.onclick=function(e){e.stopPropagation();removeFromWatchlist(m);};
+    })(mv);
+    chip.appendChild(nm);chip.appendChild(del);el.appendChild(chip);
+  });
+}
+
+function doSearch(){
+  var inp=document.getElementById("search-input"),query=inp?inp.value.trim():"";if(!query)return;
+  var el=document.getElementById("search-results");if(!el)return;
+  el.innerHTML='<div class="sb-empty">...</div>';
+  fetch("https://www.omdbapi.com/?t="+encodeURIComponent(query)+"&apikey="+OMDB_KEY+"&type=movie")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.Response==="True"){
+        var poster=(d.Poster&&d.Poster!=="N/A")?'<img src="'+d.Poster+'" style="width:30px;height:42px;object-fit:cover;border-radius:4px;flex-shrink:0"/>':'<div style="width:30px;height:42px;background:var(--bg-hover);border-radius:4px;flex-shrink:0">\uD83C\uDFAC</div>';
+        var rating=d.imdbRating&&d.imdbRating!=="N/A"?"\u2B50 "+d.imdbRating:"",genre=(d.Genre||"").split(",")[0];
+        el.innerHTML='<div class="search-result" onclick="startWithMovie(\''+d.Title.replace(/'/g,"\\'")+'\')">'+poster+'<div><div class="result-title">'+d.Title+' ('+d.Year+')</div><div class="result-meta">'+rating+(rating?" \xb7 ":"")+genre+'</div></div></div>';
+      }else{el.innerHTML='<div class="sb-empty">'+getText("Film tapilmadi.","Movie not found.")+'</div>';}
+    }).catch(function(){el.innerHTML='<div class="sb-empty" style="color:#e55">Network error</div>';});
+}
+function startWithMovie(title){
+  // Yeni chat ACMIR - eyni chatde davam edir
+  // Yeni chat yalniz: bota yeni giris, "+ Yeni Sohbet" duymesi
+  _pendingNewMovie=title; // poster/suggestions ucun isaret
+  var ci=document.getElementById("chat-input"),si=document.getElementById("search-input"),sr=document.getElementById("search-results");
+  if(ci)ci.value=title;if(si)si.value="";if(sr)sr.innerHTML="";
+  closeSidebar();
+  sendMsg();
+}
+
+function subscribeNotify(){
+  var email=document.getElementById("notify-email").value.trim();
+  if(!email||email.indexOf("@")===-1){alert(getText("Duzgun email daxil edin","Enter a valid email"));return;}
+  if(subscribers.indexOf(email)!==-1){alert(getText("Bu email artiq abunedir.","This email is already subscribed."));return;}
+  var btn=document.getElementById("notify-btn");btn.textContent="...";btn.disabled=true;
+  emailjs.send(EJS_SERVICE,EJS_CONFIRM,{email:email})
+    .then(function(){
+      subscribers.push(email);
+      try{localStorage.setItem("cc_subscribers",JSON.stringify(subscribers));}catch(e){}
+      btn.textContent=getText("Abune olundu! \u2713","Subscribed! \u2713");btn.disabled=false;
+      setTimeout(function(){btn.textContent=getText("Abune ol","Subscribe");},3000);
+    })
+    .catch(function(err){
+      console.error("EmailJS error:",err);
+      btn.textContent=getText("Xeta!","Error!");btn.disabled=false;
+      setTimeout(function(){btn.textContent=getText("Abune ol","Subscribe");},2500);
+    });
+}
+function sendNewsletterToAll(filmList){
+  if(!subscribers.length){alert("Hec bir abuneci yoxdur.");return;}
+  var sent=0;
+  subscribers.forEach(function(email){
+    emailjs.send(EJS_SERVICE,EJS_NOTIFY,{email:email,film_list:filmList})
+      .then(function(){sent++;if(sent===subscribers.length)alert(sent+" abuneciye mail gonderildi!");})
+      .catch(function(err){console.error("Mail gondermek olmadi:",email,err);});
+  });
+}
+
+function fetchSuggestions(movie){
+  var prompt=appLang==="az"?'"'+movie+'" filmine oxsar 4 film adi ver. Yalniz vergülle ayrilmis adlar.':'4 movies similar to "'+movie+'". Comma-separated names only.';
+  fetch(BACKEND_URL+"/recommend",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({movie:movie,lang:appLang})})
+    .then(function(r){return r.json();}).then(function(data){
+      var txt=(data.films&&data.films.length)?data.films.join(","):"";
+      var films=txt.split(",").map(function(s){return s.trim().replace(/^\d+\.\s*/,"").replace(/['"]/g,"");}).filter(function(s){return s.length>0;}).slice(0,4);
+      if(films.length>0){
+        var html='<div class="sug-title">'+getText("Oxsar filmler:","Similar movies:")+'</div><div class="sug-chips">';
+        films.forEach(function(f){html+='<button class="sug-chip" onclick="startWithMovie(\''+f.replace(/'/g,"\\'")+'\')">'+f+'</button>';});
+        html+='</div>';var sg=document.getElementById("suggestions");if(sg)sg.innerHTML=html;
+      }
+    }).catch(function(){});
+}
+
+function fetchPoster(title){
+  fetch("https://www.omdbapi.com/?t="+encodeURIComponent(title)+"&apikey="+OMDB_KEY)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.Response!=="True")return;
+      var box=document.getElementById("messages");if(!box)return;
+      var wrap=document.createElement("div");wrap.className="msg bot";
+      var av=document.createElement("div");av.className="avatar bot";av.textContent="C";
+      var card=document.createElement("div");card.className="movie-card";
+      var ph=(d.Poster&&d.Poster!=="N/A")?'<img src="'+d.Poster+'" loading="lazy" style="width:100%"/>':'<div style="width:100%;height:120px;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:36px">\uD83C\uDFAC</div>';
+      card.innerHTML=ph+'<div class="movie-card-body"><div class="mc-title">'+d.Title+' ('+d.Year+')</div><div class="mc-meta">'+(d.imdbRating&&d.imdbRating!=="N/A"?"\u2B50 "+d.imdbRating+" \xb7 ":"")+(d.Genre||"").split(",")[0]+(d.Runtime&&d.Runtime!=="N/A"?" \xb7 "+d.Runtime:"")+'</div>'+(d.Director&&d.Director!=="N/A"?'<div class="mc-meta">\uD83C\uDFAC '+d.Director+'</div>':'')+'</div>';
+      wrap.appendChild(av);wrap.appendChild(card);box.appendChild(wrap);box.scrollTop=box.scrollHeight;
+    }).catch(function(){});
+}
+
+function toggleVoice(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert(getText("Ses ucun Chrome brauzerinden istifade edin.","Use Chrome for voice input."));return;}
+  var mic=document.getElementById("mic-btn"),inp=document.getElementById("chat-input");
+  if(isListening){if(recognition)recognition.stop();return;}
+  recognition=new SR();recognition.lang="en-US";recognition.interimResults=true;recognition.continuous=false;
+  isListening=true;mic.classList.add("active");if(inp)inp.placeholder="Listening...";
+  var _vf="";
+  recognition.onresult=function(e){var interim="";_vf="";for(var i=0;i<e.results.length;i++){if(e.results[i].isFinal)_vf+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}if(inp)inp.value=_vf||interim;};
+  recognition.onend=function(){mic.classList.remove("active");isListening=false;if(inp)inp.placeholder=appLang==="az"?"Film adi ve ya sual...":"Movie name or question...";var typed=inp?inp.value.trim():"";if(typed)setTimeout(function(){sendMsg();},300);};
+  recognition.onerror=function(ev){mic.classList.remove("active");isListening=false;if(inp)inp.placeholder=appLang==="az"?"Film adi ve ya sual...":"Movie name or question...";if(ev.error==="not-allowed")addBubble("bot","Mikrofon icazesi verilmedi.",false,false,false);else if(ev.error!=="aborted"&&ev.error!=="no-speech")addBubble("bot","Voice error: "+ev.error,false,false,false);};
+  recognition.start();
+}
+
+function sendMsg(){
+  var input=document.getElementById("chat-input");if(!input)return;
+  var text=input.value.trim();if(!text)return;
+  input.value="";
+  // appMovie yalniz ILK mesajda ve chat bos olduqda qoyulur
+  // Movcud chatde basqa film adi yazilsa appMovie deyismir, eyni chat davam edir
+  var isFirst=false;
+  // _pendingNewMovie: watchlist/chip/search-den secilen film
+  // appMovie-yi deyismirik - eyni chatde davam edirik
+  // sadece poster/suggestions ucun isFirst=true edirik
+  var _posterMovie=null;
+  if(_pendingNewMovie){
+    _posterMovie=_pendingNewMovie;
+    _pendingNewMovie=null;
+    isFirst=true;
+    // appMovie-ni deyismirik - chatde kecmis film qalir
+    // amma ilk mesajdirsa set et
+    if(!appMovie) appMovie=_posterMovie;
+  } else if(!appMovie && !appHistory.length){
+    appMovie=text;
+    isFirst=true;
+  }
+  // Ilk mesajda activeChatId yarat
+  if(!activeChatId && !appHistory.length){
+    activeChatId=genId();
+    var now=new Date();
+    var dateStr=now.getDate()+"."+(now.getMonth()+1)+"."+now.getFullYear();
+    chatSessions.unshift({id:activeChatId,title:appMovie||text,history:[],movie:appMovie,mode:appMode,lang:appLang,date:dateStr});
+    if(chatSessions.length>30) chatSessions=chatSessions.slice(0,30);
+    saveSessions(); renderRecents();
+  }
+  addBubble("user",text,false,false,false);showTyping();
+  var _ctxMovie=_posterMovie||appMovie; // hansi film haqqinda sual verildiyini bil
+  callAI(text,_ctxMovie).then(function(reply){
+    removeTyping();
+    var spoiler=appMode==="after"&&appHistory.length>0;
+    addBubble("bot",reply,spoiler,true,true);
+    appHistory.push({role:"user",content:text});appHistory.push({role:"assistant",content:reply});
+    if(isFirst && _posterMovie){ appMovie=_posterMovie; } // indi appMovie-yi yeni film ile guncelle
+    saveApp();saveCurrentSession();if(isFirst){var _pm=_posterMovie||appMovie;fetchPoster(_pm);fetchSuggestions(_pm);_posterMovie=null;}
+  }).catch(function(err){removeTyping();addBubble("bot",getText("Xeta: ","Error: ")+(err.message||"Unknown error"),false,false,false);});
+}
+
+function callAI(userMsg,ctxMovie){
+    return fetch(BACKEND_URL+"/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:userMsg,history:appHistory.slice(-12),mode:appMode,lang:appLang,movie:ctxMovie||appMovie})
+  }).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.detail||"HTTP "+r.status);});return r.json();})
+  .then(function(data){
+    if(!data.reply)throw new Error(getText("Bos cavab.","Empty response."));
+    return data.reply.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
+  });
+}
+
+function doClearChat(silent){
+  saveCurrentSession(); // Temizlemeden once saxla
+  activeChatId=null;
+  appHistory=[];appMovie="";saveApp();
+  var msgs=document.getElementById("messages"),sugs=document.getElementById("suggestions");
+  if(msgs)msgs.innerHTML="";if(sugs)sugs.innerHTML="";
+  renderRecents();
+  if(!silent)addBubble("bot",getWelcome(),false,false,false);
+}
+
+function addBubble(role,text,spoiler,showActions,isHTML){
+  var box=document.getElementById("messages");if(!box)return;
+  var wrap=document.createElement("div");wrap.className="msg "+role;
+  var av=document.createElement("div");av.className="avatar "+role;av.textContent=role==="bot"?"C":"S";
+  var bbl=document.createElement("div");bbl.className="bubble "+role;
+  if(spoiler){var badge=document.createElement("div");badge.className="spoiler-badge";badge.textContent=getText("Spoiler movcuddur","Contains spoilers");bbl.appendChild(badge);bbl.appendChild(document.createElement("br"));}
+  if(isHTML){var d=document.createElement("div");d.innerHTML=text;bbl.appendChild(d);}
+  else{bbl.appendChild(document.createTextNode(text));}
+  if(role==="bot"&&showActions){
+    var acts=document.createElement("div");acts.className="bubble-actions";
+    var like=document.createElement("button");like.className="act-btn";like.textContent="\uD83D\uDC4D";
+    var dis=document.createElement("button");dis.className="act-btn";dis.textContent="\uD83D\uDC4E";
+    like.onclick=function(){like.classList.toggle("liked");dis.classList.remove("disliked");};
+    dis.onclick=function(){dis.classList.toggle("disliked");like.classList.remove("liked");};
+    var stars=document.createElement("div");stars.className="stars";
+    for(var i=1;i<=5;i++){
+      (function(val){var s=document.createElement("button");s.className="star";s.textContent="\u2605";s.onclick=function(){var all=stars.querySelectorAll(".star");for(var j=0;j<all.length;j++)all[j].classList.toggle("lit",j<val);};stars.appendChild(s);})(i);
+    }
+    acts.appendChild(like);acts.appendChild(dis);acts.appendChild(stars);bbl.appendChild(acts);
+  }
+  wrap.appendChild(av);wrap.appendChild(bbl);box.appendChild(wrap);box.scrollTop=box.scrollHeight;
+}
+
+function showTyping(){
+  var box=document.getElementById("messages");if(!box)return;
+  var w=document.createElement("div");w.className="msg bot";w.id="typing-ind";
+  var av=document.createElement("div");av.className="avatar bot";av.textContent="C";
+  var bbl=document.createElement("div");bbl.className="bubble bot typing";
+  bbl.innerHTML="<div class='dot'></div><div class='dot'></div><div class='dot'></div>";
+  w.appendChild(av);w.appendChild(bbl);box.appendChild(w);box.scrollTop=box.scrollHeight;
+}
+function removeTyping(){var el=document.getElementById("typing-ind");if(el)el.remove();}
+</script>
+</body>
+</html>
