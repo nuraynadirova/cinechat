@@ -554,7 +554,7 @@ function handleQuick(text){
   var ci=document.getElementById("chat-input");
   // Film adi varsa, quick button mesajina elave et ki model anlaysin
   var msg=text;
-  if(appMovie) msg=text+' ("'+appMovie+'" filmi haqqinda)';
+  if(appMovie) msg=text+' - "'+appMovie+'"';
   if(ci)ci.value=msg;
   sendMsg();
 }
@@ -698,8 +698,12 @@ function sendMsg(){
     // amma ilk mesajdirsa set et
     if(!appMovie) appMovie=_posterMovie;
   } else if(!appMovie && !appHistory.length){
-    appMovie=text;
-    isFirst=true;
+    // "hi", "salam" kimi umumi sozleri film adi kimi qebul etme
+    var _skip=["hi","hello","hey","salam","xebersen","nece","yaxshi","okay","ok","test","var","yox","nedir","ne","kim","harada"];
+    if(text.length>=3 && text.indexOf("?")===-1 && _skip.indexOf(text.toLowerCase().trim())===-1){
+      appMovie=text;
+      isFirst=true;
+    }
   }
   // Ilk mesajda activeChatId yarat
   if(!activeChatId && !appHistory.length){
