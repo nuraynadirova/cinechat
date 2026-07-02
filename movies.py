@@ -4,6 +4,9 @@ CineChat — OMDB Film Axtarış Modulu
 
 import httpx
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 OMDB_KEY = os.getenv("OMDB_API_KEY", "")
 
