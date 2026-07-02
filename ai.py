@@ -23,9 +23,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── Konfiqurasiya ──
+OPENAI_KEY     = os.getenv("OPENAI_API_KEY", "")
+OPENAI_URL     = "https://api.openai.com/v1/chat/completions"
+OPENAI_MODEL   = "gpt-4o-mini"
+
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY", "")
 API_URL        = "https://openrouter.ai/api/v1/chat/completions"
-MODEL          = "mistralai/mistral-7b-instruct:free"
+
+# Free OpenRouter models get rotated/deprecated often, so we try a short
+# list in order and fall back automatically if one has no endpoints live.
+MODEL_CANDIDATES = [
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "deepseek/deepseek-chat-v3.1:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+]
 
 # ── Film verilənlər bazası (TF-IDF recommender üçün) ──
 MOVIES_DB = pd.DataFrame([
@@ -126,6 +138,76 @@ def analyze_sentiment(text: str) -> dict:
 
 
 # ═══════════════════════════════════════
+#  OPENAI BİRBAŞA ÇAĞIRIŞI (əsas, pullu, sürətli)
+# ═══════════════════════════════════════
+async def call_openai(messages: list, max_tokens: int) -> str:
+    if not OPENAI_KEY:
+        raise RuntimeError("OPENAI_API_KEY not set")
+    async with httpx.AsyncClient(timeout=30) as client:
+        res = await client.post(
+            OPENAI_URL,
+            headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
+            json={"model": OPENAI_MODEL, "max_tokens": max_tokens, "messages": messages},
+        )
+        data = res.json()
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"]
+        oa_error = data.get("error", {})
+        oa_msg = oa_error.get("message", str(data)) if isinstance(oa_error, dict) else str(data)
+        raise RuntimeError(f"OpenAI error (HTTP {res.status_code}): {oa_msg}")
+
+
+# ═══════════════════════════════════════
+#  OPENROUTER ÇAĞIRIŞI (model fallback ilə)
+# ═══════════════════════════════════════
+async def call_openrouter(messages: list, max_tokens: int) -> str:
+    """
+    Sıra ilə MODEL_CANDIDATES-i sınayır. Bir model 'no endpoints'/404
+    qaytarsa növbətiyə keçir. Auth/kredit (401/402) xətalarında dərhal
+    dayanır, çünki model dəyişmək kömək etməyəcək.
+    """
+    last_error = None
+    async with httpx.AsyncClient(timeout=30) as client:
+        for model in MODEL_CANDIDATES:
+            res = await client.post(
+                API_URL,
+                headers={"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"},
+                json={"model": model, "max_tokens": max_tokens, "messages": messages},
+            )
+            data = res.json()
+            if "choices" in data:
+                return data["choices"][0]["message"]["content"]
+
+            or_error = data.get("error", {})
+            or_msg = or_error.get("message", str(data)) if isinstance(or_error, dict) else str(data)
+            last_error = f"OpenRouter error (HTTP {res.status_code}) [{model}]: {or_msg}"
+
+            if res.status_code in (401, 402):
+                raise RuntimeError(last_error)
+            continue
+
+    raise RuntimeError(last_error or "All OpenRouter models failed")
+
+
+# ═══════════════════════════════════════
+#  LLM ÇAĞIRIŞI — OpenAI əsas, OpenRouter ehtiyat
+# ═══════════════════════════════════════
+async def call_llm(messages: list, max_tokens: int) -> str:
+    """
+    Əvvəlcə OpenAI-ni (sürətli, etibarlı, pullu) sınayır.
+    Uğursuz olarsa (məs. balans bitib, key yoxdur) OpenRouter-in
+    pulsuz modellərinə keçir ki, sistem hər halda cavab versin.
+    """
+    if OPENAI_KEY:
+        try:
+            return await call_openai(messages, max_tokens)
+        except Exception as e:
+            logger_msg = f"OpenAI failed, falling back to OpenRouter: {e}"
+            print(logger_msg)
+    return await call_openrouter(messages, max_tokens)
+
+
+# ═══════════════════════════════════════
 #  LLM ƏSASLI TÖVSIYYƏ (fallback)
 # ═══════════════════════════════════════
 async def recommend_by_llm(movie: str, lang: str) -> list:
@@ -137,23 +219,15 @@ async def recommend_by_llm(movie: str, lang: str) -> list:
     else:
         prompt = f'Give 5 movies similar to "{movie}". Return ONLY a JSON array: ["Film1","Film2","Film3","Film4","Film5"]'
 
-    async with httpx.AsyncClient(timeout=20) as client:
-        res = await client.post(
-            API_URL,
-            headers={"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"},
-            json={"model": MODEL, "max_tokens": 120,
-                  "messages": [{"role": "user", "content": prompt}]},
-        )
-        data = res.json()
-        text = data["choices"][0]["message"]["content"]
-        match = re.search(r'\[.*?\]', text, re.DOTALL)
-        if match:
-            try:
-                return json.loads(match.group())
-            except Exception:
-                pass
-        # Vergüllə ayrılmış siyahı kimi parse et
-        return [s.strip().strip('"') for s in text.split(",") if s.strip()][:5]
+    text = await call_llm([{"role": "user", "content": prompt}], max_tokens=120)
+    match = re.search(r'\[.*?\]', text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except Exception:
+            pass
+    # Vergüllə ayrılmış siyahı kimi parse et
+    return [s.strip().strip('"') for s in text.split(",") if s.strip()][:5]
 
 
 # ═══════════════════════════════════════
@@ -236,15 +310,4 @@ async def get_chat_response(message: str, history: list,
     messages += history[-12:]  # Son 12 mesaj (context window idarəsi)
     messages.append({"role": "user", "content": message})
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        res = await client.post(
-            API_URL,
-            headers={"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"},
-            json={"model": MODEL, "max_tokens": 1000, "messages": messages},
-        )
-        data = res.json()
-        if "choices" not in data:
-            or_error = data.get("error", {})
-            or_msg = or_error.get("message", str(data)) if isinstance(or_error, dict) else str(data)
-            raise RuntimeError(f"OpenRouter error (HTTP {res.status_code}): {or_msg}")
-        return data["choices"][0]["message"]["content"]
+    return await call_llm(messages, max_tokens=1000)
