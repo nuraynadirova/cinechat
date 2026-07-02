@@ -243,4 +243,8 @@ async def get_chat_response(message: str, history: list,
             json={"model": MODEL, "max_tokens": 1000, "messages": messages},
         )
         data = res.json()
+        if "choices" not in data:
+            or_error = data.get("error", {})
+            or_msg = or_error.get("message", str(data)) if isinstance(or_error, dict) else str(data)
+            raise RuntimeError(f"OpenRouter error (HTTP {res.status_code}): {or_msg}")
         return data["choices"][0]["message"]["content"]
