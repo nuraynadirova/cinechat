@@ -248,20 +248,41 @@ function startWithMovie(title) {
   sendMsg();
 }
 
+// ── EmailJS abunelik ──
+var EMAILJS_SERVICE_ID  = "service_soi0wsp";
+var EMAILJS_TEMPLATE_ID = "template_gus1r8o";
+
 function subscribeNotify() {
-  var email = document.getElementById("notify-email").value.trim();
+  var emailInput = document.getElementById("notify-email");
+  var email = emailInput.value.trim();
   if (!email || email.indexOf("@") === -1) {
     alert(getText("Duzgun email daxil edin", "Enter a valid email address"));
     return;
   }
   var btn = document.getElementById("notify-btn");
+  btn.disabled = true;
   btn.textContent = "...";
-  setTimeout(function() {
+
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_email: email,
+    email: email,
+    user_email: email,
+    reply_to: email
+  }).then(function() {
     btn.textContent = getText("Abune olundu! ✓", "Subscribed! ✓");
+    emailInput.value = "";
     setTimeout(function() {
       btn.textContent = getText("Abune ol", "Subscribe");
+      btn.disabled = false;
     }, 2500);
-  }, 800);
+  }).catch(function(err) {
+    console.error("EmailJS error:", err);
+    btn.textContent = getText("Xeta! Yeniden cehd edin", "Error! Try again");
+    setTimeout(function() {
+      btn.textContent = getText("Abune ol", "Subscribe");
+      btn.disabled = false;
+    }, 2500);
+  });
 }
 
 // ── Film oxsar tovsiyyeler ──
