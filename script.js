@@ -250,7 +250,7 @@ function startWithMovie(title) {
 
 // ── EmailJS abunelik ──
 var EMAILJS_SERVICE_ID  = "service_soi0wsp";
-var EMAILJS_TEMPLATE_ID = "template_gus1r8o";
+var EMAILJS_TEMPLATE_ID = "template_n4rqoem";
 
 function subscribeNotify() {
   var emailInput = document.getElementById("notify-email");
