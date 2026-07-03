@@ -29,13 +29,6 @@
       <span class="logo-text">CineChat</span>
     </div>
     <div class="sb-section">
-      <div class="sb-label" id="lbl-theme">Tema</div>
-      <div class="theme-row">
-        <button class="theme-pill active" id="tb-dark"  onclick="setTheme('ocean-dark')">🌊 Okean Gecəsi</button>
-        <button class="theme-pill"        id="tb-light" onclick="setTheme('ocean-light')">☀️ Günorta Göyü</button>
-      </div>
-    </div>
-    <div class="sb-section">
       <div class="sb-label" id="lbl-lang">Dil / Language</div>
       <div class="lang-row">
         <button class="lang-pill active" id="lb-az" onclick="setLang('az')">🇦🇿 AZ</button>
@@ -60,6 +53,9 @@
       <div class="sb-label" id="lbl-notify">📧 Yeni Film Bildirişi</div>
       <input class="sb-input" id="notify-email" type="email" placeholder="email@example.com"/>
       <button class="notify-btn" id="notify-btn" onclick="subscribeNotify()">Abunə ol</button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()" title="Temani deyis">🌙</button>
     </div>
   </aside>
 
