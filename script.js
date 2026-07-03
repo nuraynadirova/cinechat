@@ -30,12 +30,10 @@ function saveApp() {
 // initApp is called from index.html button onclick
 function initApp() {
   document.documentElement.setAttribute("data-theme", appTheme);
-  var tbDark  = document.getElementById("tb-dark");
-  var tbLight = document.getElementById("tb-light");
+  var themeBtn = document.getElementById("theme-toggle");
+  if (themeBtn) themeBtn.textContent = appTheme === "ocean-dark" ? "🌙" : "☀️";
   var lbAz    = document.getElementById("lb-az");
   var lbEn    = document.getElementById("lb-en");
-  if (tbDark)  tbDark.classList.toggle("active",  appTheme === "ocean-dark");
-  if (tbLight) tbLight.classList.toggle("active", appTheme === "ocean-light");
   if (lbAz)   lbAz.classList.toggle("active",     appLang === "az");
   if (lbEn)   lbEn.classList.toggle("active",     appLang === "en");
   updateAllUI();
@@ -58,13 +56,15 @@ function getWelcome() {
   return "Hello! Type a movie name to get spoiler-free info or deep analysis after watching.";
 }
 
+function toggleTheme() {
+  setTheme(appTheme === "ocean-dark" ? "ocean-light" : "ocean-dark");
+}
+
 function setTheme(t) {
   appTheme = t;
   document.documentElement.setAttribute("data-theme", t);
-  var tbDark  = document.getElementById("tb-dark");
-  var tbLight = document.getElementById("tb-light");
-  if (tbDark)  tbDark.classList.toggle("active",  t === "ocean-dark");
-  if (tbLight) tbLight.classList.toggle("active", t === "ocean-light");
+  var themeBtn = document.getElementById("theme-toggle");
+  if (themeBtn) themeBtn.textContent = t === "ocean-dark" ? "🌙" : "☀️";
   saveApp();
 }
 
@@ -83,7 +83,6 @@ function getText(azText, enText) {
 }
 
 function updateAllUI() {
-  setEl("lbl-theme",     getText("Tema",              "Theme"));
   setEl("lbl-lang",      getText("Dil",               "Language"));
   setEl("lbl-search",    getText("🔍 Film Axtar",     "🔍 Search Movie"));
   setEl("lbl-watchlist", getText("📋 Watchlist",      "📋 Watchlist"));
@@ -290,6 +289,35 @@ function fetchSuggestions(movie) {
 }
 
 // ── OMDB poster karti ──
+function renderMovieCard(d) {
+  if (!d.found) return;
+  var box = document.getElementById("messages");
+  if (!box) return;
+  var wrap = document.createElement("div"); wrap.className = "msg bot";
+  var av   = document.createElement("div"); av.className = "avatar bot"; av.textContent = "C";
+  var card = document.createElement("div"); card.className = "movie-card";
+
+  var posterHTML = (d.poster && d.poster !== "N/A")
+    ? '<img src="' + d.poster + '" alt="' + d.title + '" loading="lazy" style="width:100%"/>'
+    : '<div style="width:100%;height:120px;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:36px">🎬</div>';
+
+  card.innerHTML = posterHTML +
+    '<div class="movie-card-body">' +
+    '<div class="mc-title">' + d.title + ' (' + d.year + ')</div>' +
+    '<div class="mc-meta">' +
+      (d.rating && d.rating !== "N/A" ? '⭐ ' + d.rating + ' · ' : '') +
+      (d.genre || '') +
+      (d.runtime && d.runtime !== "N/A" ? ' · ' + d.runtime : '') +
+    '</div>' +
+    (d.director && d.director !== "N/A" ? '<div class="mc-meta">🎬 ' + d.director + '</div>' : '') +
+    '</div>';
+
+  wrap.appendChild(av);
+  wrap.appendChild(card);
+  box.appendChild(wrap);
+  box.scrollTop = box.scrollHeight;
+}
+
 function fetchPoster(title) {
   fetch(BACKEND_URL + "/search", {
     method: "POST",
@@ -297,34 +325,7 @@ function fetchPoster(title) {
     body: JSON.stringify({ title: title })
   })
     .then(function(r){ return r.json(); })
-    .then(function(d) {
-      if (!d.found) return;
-      var box = document.getElementById("messages");
-      if (!box) return;
-      var wrap = document.createElement("div"); wrap.className = "msg bot";
-      var av   = document.createElement("div"); av.className = "avatar bot"; av.textContent = "C";
-      var card = document.createElement("div"); card.className = "movie-card";
-
-      var posterHTML = (d.poster && d.poster !== "N/A")
-        ? '<img src="' + d.poster + '" alt="' + d.title + '" loading="lazy" style="width:100%"/>'
-        : '<div style="width:100%;height:120px;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:36px">🎬</div>';
-
-      card.innerHTML = posterHTML +
-        '<div class="movie-card-body">' +
-        '<div class="mc-title">' + d.title + ' (' + d.year + ')</div>' +
-        '<div class="mc-meta">' +
-          (d.rating && d.rating !== "N/A" ? '⭐ ' + d.rating + ' · ' : '') +
-          (d.genre || '') +
-          (d.runtime && d.runtime !== "N/A" ? ' · ' + d.runtime : '') +
-        '</div>' +
-        (d.director && d.director !== "N/A" ? '<div class="mc-meta">🎬 ' + d.director + '</div>' : '') +
-        '</div>';
-
-      wrap.appendChild(av);
-      wrap.appendChild(card);
-      box.appendChild(wrap);
-      box.scrollTop = box.scrollHeight;
-    })
+    .then(renderMovieCard)
     .catch(function(){});
 }
 
@@ -386,7 +387,7 @@ function sendMsg() {
   input.value = "";
 
   var isFirst = !appMovie;
-  if (!appMovie) appMovie = text;
+  if (isFirst) appMovie = text; // ilk mesaj hemise film adi kimi qebul olunur
 
   addBubble("user", text, false, false, false);
   showTyping();
@@ -400,10 +401,10 @@ function sendMsg() {
       appHistory.push({ role: "user",      content: text  });
       appHistory.push({ role: "assistant", content: reply });
       saveApp();
-      if (isFirst) {
-        fetchPoster(appMovie);
-        fetchSuggestions(appMovie);
-      }
+
+      // FIX 5: her mesajda yoxla — yazilan yeni bir film adidirsa
+      // poster ve tovsiyeleri yenile (yalniz ilk mesajda deyil)
+      checkMovieSwitch(text, isFirst);
     })
     .catch(function(err) {
       removeTyping();
@@ -411,6 +412,31 @@ function sendMsg() {
         getText("Xeta bas verdi: ", "Error: ") + (err.message || "Unknown error"),
         false, false, false);
     });
+}
+
+// ── Yazilan metnin (yeni) bir film adi olub-olmadigini yoxlayir ──
+function checkMovieSwitch(text, isFirst) {
+  fetch(BACKEND_URL + "/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: text })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (d.found) {
+        var isNewMovie = isFirst || d.title.toLowerCase() !== appMovie.toLowerCase();
+        if (isNewMovie) {
+          appMovie = d.title;
+          renderMovieCard(d);
+          fetchSuggestions(d.title);
+          saveApp();
+        }
+      } else if (isFirst) {
+        // Ilk mesaj OMDB-de tapilmadi, amma yene de tovsiyye cehdi edek
+        fetchSuggestions(appMovie);
+      }
+    })
+    .catch(function(){});
 }
 
 // ── Backend chat sorgusu ──
